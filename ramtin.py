@@ -1,36 +1,40 @@
-import tkinter as tk
-from tkinter import simpledialog
-import requests
-import threading
 import time
+import requests
+from termcolor import colored
 
-# تابع ارسال درخواست HTTP
-def send_http_requests(ip, port=80):
-    url = f"http://{ip}:{port}"
-    for _ in range(3):
-        try:
-            response = requests.get(url)
-            print(f"Request sent to {url}, Status Code: {response.status_code}")
-        except requests.RequestException as e:
-            print(f"Error occurred: {e}")
-        time.sleep(1)  # فاصله 1 ثانیه بین درخواست‌ها
+def get_user_input():
+    print("Welcome to the HTTP Request Tool!")
+    ip_address = input("Please enter the IP address: ")
+    while not ip_address:  # بررسی آی‌پی
+        print(colored("Invalid IP address. Please try again.", "red"))
+        ip_address = input("Please enter the IP address: ")
 
-# تابع برای درخواست IP و پورت
-def get_ip_and_port():
-    root = tk.Tk()
-    root.withdraw()  # پنجره اصلی نمایش داده نمی‌شود، فقط دیالوگ‌ها نمایش داده می‌شوند
+    website_url = input("Please enter the website URL: ")
+    while not website_url:  # بررسی URL
+        print(colored("Invalid URL. Please try again.", "red"))
+        website_url = input("Please enter the website URL: ")
 
-    # نمایش دیالوگ برای وارد کردن IP
-    ip = simpledialog.askstring("IP Request", "Please enter the IP:")
-    if ip:
-        # نمایش دیالوگ برای وارد کردن پورت (پورت پیش‌فرض 80)
-        port = simpledialog.askinteger("Port Request", "Please enter the port (default 80):", initialvalue=80)
-        port = port or 80  # اگر پورت وارد نشد، پورت پیش‌فرض 80 در نظر گرفته می‌شود
+    port = input("Please enter the port: ")
+    while not port.isdigit():  # بررسی پورت
+        print(colored("Invalid port. Please enter a valid number.", "red"))
+        port = input("Please enter the port: ")
 
-        print(f"Sending requests to {ip}:{port}")
-        
-        # ایجاد یک رشته جداگانه برای ارسال درخواست‌ها بدون مسدود کردن ترمینال
-        threading.Thread(target=send_http_requests, args=(ip, port)).start()
+    return ip_address, website_url, port
+
+def send_http_requests(ip, url, port):
+    full_url = f"http://{ip}:{port}/{url}"
+    count = 0
+    while True:
+        for _ in range(999):  # ارسال 999 درخواست
+            try:
+                response = requests.get(full_url)
+                # نمایش پاسخ به صورت سبز
+                print(colored(f"Request {count + 1}: {full_url} | Status: {response.status_code}", "green"))
+                count += 1
+            except Exception as e:
+                print(colored(f"Error: {e}", "red"))
+        time.sleep(60)  # درخواست‌ها هر 1 دقیقه یک‌بار تکرار می‌شود
 
 if __name__ == "__main__":
-    get_ip_and_port()
+    ip, url, port = get_user_input()
+    send_http_requests(ip, url, port)
