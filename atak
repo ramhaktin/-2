@@ -1,0 +1,43 @@
+import time
+import requests
+import threading
+from termcolor import colored
+
+# تعداد درخواست‌ها در هر ثانیه
+requests_per_second = 50
+
+# پروکسی سرور (اگر نیاز به استفاده از پروکسی دارید)
+proxy = {"http": "http://46.249.100.228:3128", "https": "http://46.249.100.228:3128"}
+
+# آدرس وب‌سایت و پورت
+ip = "46.249.100.228"
+url = "your-website-url"  # آدرس سایت خود را جایگزین کنید
+port = 3128
+
+def send_request():
+    full_url = f"http://{ip}:{port}/{url}"
+    try:
+        response = requests.get(full_url, proxies=proxy)
+        # نمایش وضعیت درخواست به رنگ سبز
+        print(colored(f"Request sent to: {full_url} | Status: {response.status_code}", "green"))
+    except Exception as e:
+        print(colored(f"Error: {e}", "red"))
+
+def request_thread():
+    while True:
+        threads = []
+        # ارسال تعداد درخواست‌ها در هر ثانیه
+        for _ in range(requests_per_second):
+            t = threading.Thread(target=send_request)
+            threads.append(t)
+            t.start()
+
+        # صبر کردن تا تمامی درخواست‌ها ارسال شوند
+        for t in threads:
+            t.join()
+
+if name == "main":
+    start_time = time.time()
+    # شروع ارسال درخواست‌ها
+    request_thread()
+    print(f"Time taken: {time.time() - start_time} seconds")
